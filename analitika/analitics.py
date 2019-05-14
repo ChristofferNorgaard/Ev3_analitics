@@ -27,6 +27,36 @@ class RideData:
         self.dataArray = dataArray
         self.wasEnded = wasEnded
 
+class GyroObject:
+    def __init__(self, text, y_ar, x_ar, other_data_ar, ride_num, was_ended, date):
+        #text, y_ar, x_ar, other_data_ar, ride_num, was_ended
+        self.text = time
+        self.y_ar = y_ar 
+        self.x_ar = x_ar
+        self.other_data_ar = other_data_ar
+        self.ride_num = ride_num
+        self.was_ended = was_ended
+        self.date = date
+
+
+    def convert_to_string(self):
+        other_data = '-'.join(self.other_data_ar)
+        string_list = [self.text, '_'.join(self.y_ar), '_'.join(self.x_ar), '_'.join(other_data), str(self.ride_num), str(self.was_ended), str(self.date)]
+        return '#'.join(string_list)
+
+    def convert_from_string(list_string):
+        string_list = list_string.split('#')
+        return_object = GyroObject(
+        string_list[0], #text
+        [int(x) for x in string_list[1].split('_')], #y_ar
+        [int(x) for x in string_list[2].split('_')], #x_ar
+        [[int(x) for x in list_x.split('-')] for list_x in string_list[3].split('_')], #ride_data
+        string_list[4], #ride_num
+        bool(string_list[5]), #was_ended
+        string_list[6] #date
+        )
+        return return_object
+
 
 #go trough file - make files in list for further use
 def import_file(csv_file):
@@ -75,7 +105,6 @@ def import_file(csv_file):
         reset  = [False, False, False, False, False, False, False]
         time += 1
         comment = ''
-
     return rides
       
 
@@ -115,7 +144,7 @@ def write_to_json(json_data, ride_array):
 def weird_division(n, d):
     return n / d if d else 0
 
-def Gyro(ride):
+def Gyro(ride, date):
     # sin -> x cos -> y
     text, y_ar, x_ar, other_data_ar = [], [], [], []
     rotationsA, rotationsB, x, y, gyro_background, gyro = 0, 0, 0, 0, 0, 0
@@ -140,7 +169,7 @@ def Gyro(ride):
         y_ar.append(y)
         x_ar.append(x)
         other_data_ar.append(other_data)
-    return text, y_ar, x_ar, other_data_ar, ride_num, was_ended
+    return GyroObject(text, y_ar, x_ar, other_data_ar, ride_num, was_ended, date)
 
 color_dict = {
     0 : '#fb00fb', #blank, using pink for blank
@@ -153,15 +182,15 @@ color_dict = {
     7 : '#A52A2A' #brown
 
 }
-def graph(text, y_ar, x_ar, other_data, ride_num, was_ended):
+def graph(GyroObject):
     source = ColumnDataSource(data = dict(
-        x=x_ar,
-        y=y_ar,
-        color_sen_1 = [color_dict[x[5]] for x in other_data],
-        color_sen_3 = [color_dict[x[6]] for x in other_data],
-        speed_B = [x[3] for x in other_data],
-        speed_C = [x[4] for x in other_data],
-        com = text
+        x=GyroObject.x_ar,
+        y=GyroObject.y_ar,
+        color_sen_1 = [color_dict[x[5]] for x in GyroObject.other_data],
+        color_sen_3 = [color_dict[x[6]] for x in GyroObject.other_data],
+        speed_B = [x[3] for x in GyroObject.other_data],
+        speed_C = [x[4] for x in GyroObject.other_data],
+        com = GyroObject.text
     ))
 
     TOOLTIPS = [
@@ -179,7 +208,7 @@ def graph(text, y_ar, x_ar, other_data, ride_num, was_ended):
     x_axis_label='x (in degrees)', y_axis_label='y (in degrees)')
 
     p.circle('x', 'y', size=8, source=source)
-    p.line(x=x_ar, y = y_ar, line_color='#00BFFF', line_width=3)
+    p.line(x=GyroObject.x_ar, y = GyroObject.y_ar, line_color='#00BFFF', line_width=3)
 
     CDN = Resources(mode="cdn")
     item_text = file_html(p, CDN, "my plot")

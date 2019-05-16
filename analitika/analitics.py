@@ -28,21 +28,21 @@ class RideData:
         self.wasEnded = wasEnded
 
 class GyroObject:
-    def __init__(self, text, y_ar, x_ar, other_data_ar, ride_num, was_ended, date):
+    def __init__(self, text, y_ar, x_ar, other_data_ar, ride_num, was_ended):
         #text, y_ar, x_ar, other_data_ar, ride_num, was_ended
-        self.text = time
+        self.text = text
         self.y_ar = y_ar 
         self.x_ar = x_ar
         self.other_data_ar = other_data_ar
         self.ride_num = ride_num
         self.was_ended = was_ended
-        self.date = date
+        
 
 
     def convert_to_string(self):
-        other_data = '-'.join(self.other_data_ar)
-        string_list = [self.text, '_'.join(self.y_ar), '_'.join(self.x_ar), '_'.join(other_data), str(self.ride_num), str(self.was_ended), str(self.date)]
-        return '#'.join(string_list)
+        other_data = '-'.join(str(x) for x in self.other_data_ar)
+        string_list = [self.text, '_'.join(str(x) for x in self.y_ar), '_'.join(str(x) for x in self.x_ar), '_'.join(other_data), str(self.ride_num), str(self.was_ended)]
+        return '#'.join(str(x) for x in string_list)
 
     def convert_from_string(list_string):
         string_list = list_string.split('#')
@@ -53,13 +53,12 @@ class GyroObject:
         [[int(x) for x in list_x.split('-')] for list_x in string_list[3].split('_')], #ride_data
         string_list[4], #ride_num
         bool(string_list[5]), #was_ended
-        string_list[6] #date
         )
         return return_object
 
 
 #go trough file - make files in list for further use
-def import_file(csv_file):
+def process_csv(csv_file):
     csv_reader = csv.reader(csv_file, delimiter=',')
     data = []
     rides = []
@@ -144,7 +143,7 @@ def write_to_json(json_data, ride_array):
 def weird_division(n, d):
     return n / d if d else 0
 
-def Gyro(ride, date):
+def Gyro(ride):
     # sin -> x cos -> y
     text, y_ar, x_ar, other_data_ar = [], [], [], []
     rotationsA, rotationsB, x, y, gyro_background, gyro = 0, 0, 0, 0, 0, 0
@@ -169,7 +168,7 @@ def Gyro(ride, date):
         y_ar.append(y)
         x_ar.append(x)
         other_data_ar.append(other_data)
-    return GyroObject(text, y_ar, x_ar, other_data_ar, ride_num, was_ended, date)
+    return GyroObject(text, y_ar, x_ar, other_data_ar, ride_num, was_ended)
 
 color_dict = {
     0 : '#fb00fb', #blank, using pink for blank
@@ -186,10 +185,10 @@ def graph(GyroObject):
     source = ColumnDataSource(data = dict(
         x=GyroObject.x_ar,
         y=GyroObject.y_ar,
-        color_sen_1 = [color_dict[x[5]] for x in GyroObject.other_data],
-        color_sen_3 = [color_dict[x[6]] for x in GyroObject.other_data],
-        speed_B = [x[3] for x in GyroObject.other_data],
-        speed_C = [x[4] for x in GyroObject.other_data],
+        color_sen_1 = [color_dict[x[5]] for x in GyroObject.other_data_ar],
+        color_sen_3 = [color_dict[x[6]] for x in GyroObject.other_data_ar],
+        speed_B = [x[3] for x in GyroObject.other_data_ar],
+        speed_C = [x[4] for x in GyroObject.other_data_ar],
         com = GyroObject.text
     ))
 
@@ -204,7 +203,7 @@ def graph(GyroObject):
     end_dict = {
         True : "was ended",
         False : "wasn't ended"}
-    p = figure(plot_width=400, plot_height=400, tooltips=TOOLTIPS, title='Ride {0} that {1}'.format(ride_num, end_dict[was_ended]), 
+    p = figure(plot_width=400, plot_height=400, tooltips=TOOLTIPS, title='Ride {0} that {1}'.format(GyroObject.ride_num, end_dict[GyroObject.was_ended]), 
     x_axis_label='x (in degrees)', y_axis_label='y (in degrees)')
 
     p.circle('x', 'y', size=8, source=source)

@@ -1,14 +1,15 @@
 #imports
 import analitics as an
-import json
+import sql_agent as sql
 
-csv_file = open("default_dataset.csv", 'r')
-rides = an.import_file(csv_file)
-a, b, c, d, e, f = an.Gyro(rides[0])
-json_file = an.graph(a, b, c, d, e, f)
-
-with open('test_ok.html', 'w') as outfile:  
-    outfile.write(json_file)
+sql_ag = sql.sql_data('test.db','test')
+try:
+    sql_ag.create_db()
+except:
+    pass
+f= open("data_csv/default_dataset.csv")
+sql.import_ride(sql_ag, f)
+sql_ag.con.commit()
 
 
 

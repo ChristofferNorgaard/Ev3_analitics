@@ -26,6 +26,10 @@ def import_ride(sql_data_class, csv_file, date = datetime.datetime.now()):
         gyro_object = an.Gyro(ride)
         gyro_text = str(gyro_object.convert_to_string())
         html_text = an.graph(gyro_object)
-        print(html_text)
         execute_text = 'INSERT INTO {0}(date, was_completed, gyro, html) VALUES (?,?,?,?)'.format(sql_data_class.db_name)
         sql_data_class.con.execute(execute_text, (date_string, was_complite_bit, gyro_text, html_text))
+
+def printRide(sql_data_class, command):
+    cur = sql_data_class.con.cursor()
+    cur.execute(command)
+    return cur.fetchall()
